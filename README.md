@@ -2,11 +2,24 @@
 
 A collection of webapp project templates to demonstrate initial build setups (Grunt / Ant)
 
-gruntjs (http://gruntjs.com/) is the best build tool currently for web projects.
+gruntjs (http://gruntjs.com/) is currently the preferred build tool for web projects.
 
-The exmaple grunt project uses grunt for LESS, CSS minification, JS minification, and JS source maps.
+The example grunt project uses grunt for:
+ * LESS
+ * Handlebars template precomilation
+ * CSS minification
+ * JS minification
+ * JS source maps
 
-The ant project is an implementation of the grunt tasks in ant for older projects that do not yet use gruntjs.
+and includes
+ * Bootstrap
+ * Underscore.js
+ * Handlebars
+
+The ant project is an implementation of the grunt task functionality for older projects still using ant as their build tool.
+
+All components are managed using Bower (https://github.com/bower/bower).
+
 
 ## grunt
 
