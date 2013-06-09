@@ -1,0 +1,8 @@
+{
+"version":3,
+"file":"project-templates.min.js",
+"lineCount":1,
+"mappings":"AACAA,CAAA,CAAEC,QAAF,CAAAC,MAAA,CAAkB,QAAQ,EAAG,CACzB,IACIC,EAAU,GADCC,MAAA,IAAAC,CAAc,oCAAdA,CACD,EAAS,OAAQ,kBAAR,MAAkC,0BAAlC,CAAT,CACdL,EAAA,CAAE,4BAAF,CAAAM,KAAA,CAAqCH,CAArC,CAHyB,CAA7B;",
+"sources":["project-templates.js"],
+"names":["$","document","ready","content","window","template","html"]
+}

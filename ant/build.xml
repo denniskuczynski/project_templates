@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+    <!ENTITY web-assets SYSTEM "web-assets.xml">
+]>
+
+<project name="project-templates" default="package" basedir="./" xmlns:aspectj="antlib:org.aspectj">
+
+    <!-- ******************************************************************* -->
+    <!-- Set the base attributes.                                            -->
+    <!-- ******************************************************************* -->
+
+    <property name="dir.build" value="dist"/>
+    <property name="dir.lib.build" value="lib-build"/>
+    <property name="dir.components" value="../components"/>
+    <property name="dir.static_assets" value="../static"/>
+
+    <!-- ******************************************************************* -->
+    <!-- Include module build scripts.                                       -->
+    <!-- ******************************************************************* -->
+
+    &web-assets;
+
+    <!-- ******************************************************************* -->
+    <!-- Remove the build directory.                                         -->
+    <!-- ******************************************************************* -->
+
+    <target name="clean">
+        <delete dir="${dir.build}"/>
+    </target>
+
+    <!-- ******************************************************************* -->
+    <!-- Package the build for the server.                                   -->
+    <!-- ******************************************************************* -->
+
+    <target name="package" depends="less,handlebars,concat,cssmin,uglify">
+        <echo>Packaged</echo>
+    </target>
+
+    <!-- ******************************************************************* -->
+    <!-- File Manifests                                                      -->
+    <!-- ******************************************************************* -->
+
+    <fileset id="files.less" dir= "${dir.static_assets}/less" includes="**/*.less" />
+
+    <union id="files.css.thirdparty">
+        <filelist>
+            <file name="${dir.components}/bootstrap/docs/assets/css/bootstrap.css" />
+            <file name="${dir.components}/bootstrap/docs/assets/css/bootstrap-responsive.css" />
+        </filelist>
+    </union>
+
+    <union id="files.js.thirdparty">
+        <filelist>
+            <file name="${dir.components}/jquery/jquery.min.js" />
+            <file name="${dir.components}/bootstrap/docs/assets/js/bootstrap.min.js" />
+            <file name="${dir.components}/underscore/underscore-min.js" />
+            <file name="${dir.components}/handlebars/handlebars.runtime.js" />
+        </filelist>
+    </union>
+
+    <union id="files.js.application">
+        <fileset dir="${dir.static_assets}/js" includes="*.js"/>
+    </union>
+
+</project>

@@ -1,0 +1,160 @@
+
+    <!-- ******************************************************************* -->
+    <!-- LESS                                                                -->
+    <!-- ******************************************************************* -->
+
+    <target name="less.check">
+        <uptodate property="less.uptodate" targetfile="${dir.build}/less/${ant.project.name}.css" >
+            <srcfiles refid="files.less"/>
+        </uptodate>
+    </target>
+
+    <target name="less" unless="less.uptodate" depends="less.check">
+        <mkdir dir="${dir.build}/less"/>
+        <java dir="${dir.static_assets}" jar="lib-build/less4j-1.0.3.jar" fork="true" failonerror="true" output="${dir.build}/less/${ant.project.name}.css">
+            <arg value="less/main.less"/>
+        </java>
+        <echo>Processed LESS files</echo>
+    </target>
+
+    <!-- ******************************************************************* -->
+    <!-- Handlebars                                                          -->
+    <!-- ******************************************************************* -->
+
+    <target name="handlebars.check">
+        <!-- TODO -->
+    </target>
+
+    <target name="handlebars" unless="handlebars.uptodate" depends="handlebars.check">
+        <mkdir dir="${dir.build}/handlebars"/>
+        
+        <!-- TODO -->
+        <echo file="${dir.build}/handlebars/templates.js"></echo>
+
+        <echo>Processed Handlebars files</echo>
+    </target>
+
+    <!-- ******************************************************************* -->
+    <!-- Concat                                                              -->
+    <!-- ******************************************************************* -->
+
+    <target name="concat">
+        <mkdir dir="${dir.build}/css"/>
+        <concat destfile="${dir.build}/css/${ant.project.name}.css">
+            <resources refid="files.css.thirdparty"/>
+            <file file="${dir.build}/less/${ant.project.name}.css"/>
+        </concat>
+
+        <mkdir dir="${dir.build}/js"/>
+        <concat destfile="${dir.build}/js/thirdparty.min.js">
+            <resources refid="files.js.thirdparty"/>
+        </concat>
+        <concat destfile="${dir.build}/js/${ant.project.name}.js">
+            <file file="${dir.build}/handlebars/templates.js"/>
+            <resources refid="files.js.application"/>
+        </concat>
+
+        <echo>Concatenated files</echo>
+    </target>
+
+    <!-- ******************************************************************* -->
+    <!-- CSS Min                                                             -->
+    <!-- ******************************************************************* -->
+
+    <target name="cssmin.check">
+        <uptodate property="cssmin.uptodate" targetfile="${dir.build}/css/${ant.project.name}.min.css">
+            <srcfiles dir="${dir.build}" includes="css/${ant.project.name}.css"/>
+        </uptodate>
+    </target>
+
+    <target name="cssmin" unless="cssmin.uptodate" depends="cssmin.check">
+        <java dir="${dir.build}/css" jar="lib-build/yuicompressor-2.4.2.jar" fork="true" failonerror="true">
+            <arg value="--type"/>
+            <arg value="css"/>
+            <arg value="-o"/>
+            <arg value="${ant.project.name}.min.css"/>
+            <arg value="--nomunge"/>
+            <arg value="${ant.project.name}.css"/>
+        </java>
+        <echo>Minified CSS files</echo>
+    </target>
+
+    <!-- ******************************************************************* -->
+    <!-- Uglify                                                              -->
+    <!-- ******************************************************************* -->
+
+    <target name="uglify.check">
+        <uptodate property="uglify.uptodate" targetfile="${dir.build}/js/${ant.project.name}.min.js">
+            <srcresources refid="files.js.application"/>
+        </uptodate>
+    </target>
+
+    <target name="uglify" unless="uglify.uptodate" depends="uglify.check">
+        <closure filepath="${dir.build}/js" filename="${ant.project.name}"/>
+        <echo>Minified JS files</echo>
+    </target>
+
+    <macrodef name="closure">
+       <attribute name="filename"/>
+       <attribute name="filepath"/>
+       <sequential>
+          <java dir="@{filepath}" jar="lib-build/closure-compiler.jar" fork="true" failonerror="true">
+              <arg value="--js"/>
+              <arg value="@{filename}.js"/>
+              <arg value="--create_source_map"/>
+              <arg value="@{filename}.js.map"/>
+              <arg value="--source_map_format=V3"/>
+              <arg value="--js_output_file"/>
+              <arg value="@{filename}.min.js"/>
+          </java>
+          <echo file="@{filepath}/@{filename}.min.js" append="true">//@ sourceMappingURL=@{filename}.js.map</echo>
+       </sequential>
+    </macrodef>
+
+    <!-- ******************************************************************* -->
+    <!-- Create Script Listing                                               -->
+    <!-- ******************************************************************* -->
+
+    <target name="script.listing">
+        <property name="replace_path_abs" location="${dir.static_assets}" relative="no"/>
+        <generate_listing refid="files.js.application" 
+            replacepath="${replace_path_abs}"
+            filepath="${dir.build}" 
+            filename="script_listing.jspf"/>
+    </target>
+
+    <macrodef name="generate_listing">
+       <attribute name="refid"/>
+       <attribute name="replacepath"/>
+       <attribute name="filepath"/>
+       <attribute name="filename"/>
+       <sequential>
+           <pathconvert targetos="unix" property="listing.raw" refid="@{refid}" pathsep="@STOP@${line.separator}">
+              <map from="@{replacepath}" to="@START@/static"/>
+           </pathconvert>
+           <!-- Append final @STOP token -->
+           <property name="listing.tokens" value="${listing.raw}@STOP@"/>
+           <!-- Write file and replace tokens -->
+           <echo file="@{filepath}/@{filename}">${listing.tokens}</echo>
+           <replace file="@{filepath}/@{filename}" token="@START@" value="&lt;script type=&quot;text/javascript&quot; src=&quot;"/>
+           <replace file="@{filepath}/@{filename}" token="@STOP@" value="?_ds=${cacheBuster}&quot;&gt;&lt;/script&gt;"/>
+       </sequential>
+    </macrodef>
+
+    <!-- ******************************************************************* -->
+    <!-- Watch                                                                -->
+    <!-- ******************************************************************* -->
+    <!-- 
+      Very dumb implementation of processing the assets when they have been modified.
+      Continually retry to execute the desired tasks in a retry block, 
+      always failing at the end so it is retried. 
+      Tasks called in this target must always depend on assets.uptodate.
+    -->
+    <target name="watch">
+        <retry retrycount="2147483647" retrydelay="2000">
+            <sequential>
+                <antcall target="less"/>
+                <fail message="Continuing Watch Process"/>
+            </sequential>
+        </retry>
+    </target>
